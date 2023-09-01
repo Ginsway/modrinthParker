@@ -1,3 +1,6 @@
 .mrpack
 .zip
 .json
+
+/build
+/dist
