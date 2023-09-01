@@ -1,8 +1,8 @@
 import hashlib
 import json
-from os import mkdir, getcwd, listdir, remove, walk, rmdir
-from os.path import isdir, join
-from zipfile import ZipFile
+import os
+import os.path
+import zipfile
 
 import requests
 
@@ -31,11 +31,11 @@ def get_hash(fn: str, hash_type) -> str:
 
 
 def unzip_modpack(filename: str) -> None:
-    if not isdir(".cache"):
-        mkdir(".cache")
-    with ZipFile(filename, mode="r") as f:
+    if not os.path.isdir(".cache"):
+        os.mkdir(".cache")
+    with zipfile.ZipFile(filename, mode="r") as f:
         for file in f.namelist():
-            f.extract(file, getcwd() + "\\.cache")
+            f.extract(file, os.getcwd() + "\\.cache")
 
 
 # TODO: 查找模组链接等信息
@@ -68,12 +68,12 @@ def get_pack_info() -> None:
 
 
 def del_cache(dir: str) -> None:
-    for root, dirs, files in walk(dir, topdown=False):
+    for root, dirs, files in os.walk(dir, topdown=False):
         for name in files:
-            remove(join(root, name))
+            os.remove(os.path.join(root, name))
         for name in dirs:
-            rmdir(join(root, name))
-    rmdir(dir)
+            os.rmdir(os.path.join(root, name))
+    os.rmdir(dir)
 
 
 def get_loader() -> None:
@@ -90,14 +90,14 @@ def get_loader() -> None:
 def main() -> None:
     unzip_modpack(input("modpack"))
     print("正在解压原整合包")
-    for i in listdir(".cache/overrides/mods"):
-        sha1 = get_hash(f"{getcwd()}\\.cache\\overrides\\mods\\{i}", hashlib.sha1())
-        sha512 = get_hash(f"{getcwd()}\\.cache\\overrides\\mods\\{i}", hashlib.sha512())
+    for i in os.listdir(".cache/overrides/mods"):
+        sha1 = get_hash(f"{os.getcwd()}\\.cache\\overrides\\mods\\{i}", hashlib.sha1())
+        sha512 = get_hash(f"{os.getcwd()}\\.cache\\overrides\\mods\\{i}", hashlib.sha512())
         modinfo = add_mod({"sha1": sha1, "sha512": sha512}, i)
         if modinfo:
             print(f"添加了modrinth模组文件：{i}")
             files.append(modinfo)
-            remove(f".\\.cache\\overrides\\mods\\{i}")
+            os.remove(f".\\.cache\\overrides\\mods\\{i}")
     # print(files)
     index["files"] = files
     print("开始编写整合包索引")
@@ -107,8 +107,8 @@ def main() -> None:
         i.write(json.dumps(index))
     print("编写整合包索引完毕")
     print("开始重新打包")
-    with ZipFile("modpack.mrpack", "w") as f:
-        for path, dir_lst, file_lst in walk(r"./.cache/overrides"):
+    with zipfile.ZipFile("modpack.mrpack", "w") as f:
+        for path, dir_lst, file_lst in os.walk(r"./.cache/overrides"):
             for file in file_lst:
                 f.write(f"{path}/{file}", f"{path.replace(r'./.cache/', './')}/{file}")
         f.write(r"./.cache/overrides/modrinth.index.json", f"modrinth.index.json")

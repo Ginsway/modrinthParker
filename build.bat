@@ -1,1 +1,1 @@
-pyinstaller -F main.py
+pyinstaller -F -n parker main.py
